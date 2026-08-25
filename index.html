@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem e-Pencerapan Guru & Buku Latihan</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-dark: #0f172a;
+            --primary-light: #2563eb;
+            --secondary: #0d9488;
+            --dark: #334155;
+            --light: #f8fafc;
+            --white: #ffffff;
+            --border: #cbd5e1;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+/* Susunan Flexbox Utama (Dua Kolum) */
+.workspace-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 20px !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Tetapan Sidebar Kiri (Saiz Tetap & Tidak Terhimpit) */
+.aspek-sidebar-container {
+    width: 230px !important;
+    min-width: 230px !important;
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    top: 15px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    z-index: 10 !important;
+}
+
+/* Tetapan Bekas Kandungan Borang (Berada Kemas di Tengah/Kanan Sidebar) */
+/* Bekas Tengah (Memaksa Lebar Penuh) */
+.aspek-content-area {
+    flex: 1 1 0% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+
+/* Gaya Butang Sidebar */
+.btn-sidebar-item {
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+    padding: 8px 10px !important;
+    margin-bottom: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border-radius: 6px !important;
+    font-size: 0.8rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-sidebar-item:hover {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+}
+
+.btn-sidebar-item.active {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+    border-color: #0284c7 !important;
+}
+
+/* 📌 TAMBAHAN BAHARU: Tetapan Sidebar Boleh Dikecilkan */
+.aspek-sidebar-container {
+    transition: all 0.3s ease-in-out !important;
+    position: relative !important;
+}
+
+.aspek-sidebar-container.collapsed {
+    width: 45px !important;
+    min-width: 45px !important;
+    padding: 10px 5px !important;
+}
+
+.aspek-sidebar-container.collapsed .sidebar-content {
+    display: none !important;
+}
+
+/* Gaya Butang Toggle Bulat (◀ / ▶) */
+.btn-toggle-sidebar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background-color: #1e293b;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    z-index: 10;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-toggle-sidebar:hover {
+    background-color: #2563eb;
+    transform: scale(1.1);
+}
+
+.aspek-sidebar-container.collapsed .btn-toggle-sidebar {
+    right: 8px;
+}
+
+/* Susunan Responsif untuk Telefon Bimbit */
+@media (max-width: 768px) {
+    .workspace-layout {
+        flex-direction: column !important;
+    }
+    .aspek-sidebar-container {
+        width: 100% !important;
+        min-width: 100% !important;
+        position: relative !important;
+        top: 0 !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+        padding: 8px !important;
+    }
+    .aspek-sidebar-container h4 { display: none !important; }
+    
+    /* 📌 Sembunyikan butang toggle & kekalkan paparan senarai di telefon */
+    .btn-toggle-sidebar { display: none !important; }
+    .aspek-sidebar-container.collapsed .sidebar-content { display: block !important; }
+    .sidebar-content { display: flex !important; gap: 6px; }
+
+    .btn-sidebar-item {
+        width: auto !important;
+        margin-bottom: 0 !important;
+        font-size: 0.75rem !important;
+    }
+    .aspek-content-area {
+        width: 100% !important;
+    }
+}
+
+/* Hilangkan Sidebar Semasa Cetak PDF */
+@media print {
+    .no-print { display: none !important; }
+    .workspace-layout { display: block !important; }
+    .aspek-card { display: block !important; }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: #f1f5f9;
+    color: var(--dark);
+    line-height: 1.5;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    background: linear-gradient(135deg, #1e293b, var(--primary-dark));
+    color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius);
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+header p {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+
+        /* Papan Skor Melekat Di Atas (Sticky Dashboard) */
+        .sticky-dashboard {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--primary-light);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+	@media (max-width: 768px) {
+  	  .sticky-dashboard {
+      	  	top: 0;                   /* Lekat rapat di bahagian atas skrin */
+        	border-radius: 0;          /* Hilangkan bucu bulat supaya muat rapat skrin */
+        	padding: 8px 12px;         /* Kecilkan padding supaya tidak makan ruang */
+        	font-size: 0.85rem;        /* Kecilkan saiz teks */
+        	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    		}
+	}
+        .card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h2 {
+            font-size: 1.15rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-light);
+        }
+
+/* Layout Pembahagian Borang (PdPc & Buku Latihan) */
+        .workspace-layout {
+	    display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+      /* Seksyen Aspek & Sub-Item Pengiraan */
+        .aspek-card {
+            width: 100%;
+	    border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--white);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .aspek-header {
+            background-color: #1e293b;
+            color: var(--white);
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .aspek-body {
+            padding: 0;
+        }
+
+        .tindakan-row {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: var(--white);
+        }
+
+        .tindakan-row:last-child {
+            border-bottom: none;
+        }
+
+        .tindakan-text {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+
+        /* Pilihan Skala Penskoran */
+        .skala-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .skala-btn {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .skala-btn:hover {
+            border-color: var(--primary-light);
+            background-color: #f0f4ff;
+        }
+
+        .skala-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .skala-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+        }
+
+        .skala-desc {
+            font-size: 0.72rem;
+            opacity: 0.85;
+            line-height: 1.2;
+            margin-top: 4px;
+            display: block;
+            text-align: left;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 4px;
+            width: 100%;
+        }
+
+        .skala-btn.active .skala-desc {
+            color: #eff6ff;
+            border-top-color: #60a5fa;
+        }
+
+  /* Seksyen Buku Latihan */
+        .buku-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .buku-table th, .buku-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .buku-table th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .bg-subheading {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .buku-select {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--white);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+/* Memaksa Kad Buku Latihan & Jadual Penuh Skrin */
+#card-buku-latihan {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#card-buku-latihan .buku-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important; /* Paksa jadual ikut 100% lebar kad */
+    box-sizing: border-box !important;
+}
+
+        /* Dashboard Skor */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .dashboard-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: var(--radius);
+        }
+
+        .dashboard-box p {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .dashboard-val {
+            font-size: 1.35rem;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-top: 2px;
+        }
+
+        .gred-badge {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .gred-CEMERLANG { color: #16a34a; }
+        .gred-BAIK { color: #2563eb; }
+        .gred-MEMUASKAN { color: #ea580c; }
+        .gred-LEMAH { color: #dc2626; }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary { background-color: #2563eb; color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary { background-color: #64748b; color: white; }
+
+        .alert-banner {
+            display: none;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+/* Penyusunan Dokumen Cetak */
+        .print-section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            border: 1px solid #cbd5e1;
+        }
+
+        .print-header {
+            text-align: center;
+            border-bottom: 3px double #000;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+        }
+
+        .print-table th, .print-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        .print-table th { background-color: #f2f2f2; font-weight: bold; }
+        .bg-gray-row { background-color: #fafafa; font-weight: 600; }
+        .text-center { text-align: center; }
+
+        @media print {
+            body { background: transparent; padding: 0; }
+            .container, .btn-container, header, .sticky-dashboard { display: none !important; }
+            .print-section { display: block !important; border: none; padding: 0; }
+            #btnRealPrintAction { display: none !important; }
+        }
+
+
+    </style>
+
+</head>
+<body>
+
+<div class="container" id="appInterface">
+
+
+    <header>
+        <h1>Sistem e-Penceparan Guru SK Desa Aman</h1>
+        <p>Borang Penilaian Bersepadu Pembelajaran, Pemudahcaraan (PdPc) & Rekod Penyemakan Hasil Kerja Murid</p>
+    </header>
+
+    <div id="statusAlert" class="alert-banner"></div>
+
+    <!-- Live Rumusan Berkembar Grid -->
+    <div class="card sticky-dashboard">
+        <div class="dashboard-grid">
+            <div class="dashboard-box">
+                <p>Peratus Akhir PdPc (Std 4)</p>
+                <div class="dashboard-val" id="valPdPc">0.00%</div>
+            </div>
+            <div class="dashboard-box">
+                <p>Taraf Pencapaian PdPc</p>
+                <div class="gred-badge" id="tarafPdPc">-</div>
+            </div>
+            <div class="dashboard-box">
+                <p>Jumlah Skor Buku Latihan</p>
+                <div class="dashboard-val" id="valBuku">0 / 75</div>
+            </div>
+            <div class="dashboard-box">
+                <p>Peratus Akhir Buku Latihan</p>
+                <div class="dashboard-val" id="peratusBuku">0.00%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maklumat Guru & Sesi -->
+    <div class="card" style="margin-top: 25px;">
+        <h2>Maklumat Guru & Sesi</h2>
+        <div class="grid-inputs">
+            <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 5px;">
+                <label style="color: var(--primary); font-weight: bold;">Nama Pegawai Penilai / Pentadbir</label>
+                <input type="text" id="gPenilai" value="Nama Penilai / Pentadbir" style="border-color: var(--primary-light); background-color: #f0f7ff;">
+            </div>
+            <div class="form-group">
+                <label>Nama Guru Dinilai</label>
+                <input type="text" id="gNama" value="Nama Penuh Guru">
+            </div>
+            <div class="form-group">
+                <label>No. Kad Pengenalan</label>
+                <input type="text" id="gKp" value="Contoh : 880214-08-5432">
+            </div>
+            <div class="form-group">
+                <label>Jenis Penilaian</label>
+                <select id="gJenis">
+                    
+                    <option value="Pencerapan 1">Pencerapan 1</option>
+                    <option value="Pencerapan 2">Pencerapan 2</option>
+                    
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mata Pelajaran</label>
+                <input type="text" id="gSubjek" value="Subjek">
+            </div>
+            <div class="form-group">
+                <label>Kelas</label>
+                <input type="text" id="gKelas" value="2 UIAM">
+            </div>
+            <div class="form-group">
+                <label>Tarikh Sesi</label>
+                <input type="date" id="gTarikh" value="2026-08-12">
+            </div>
+        </div>
+    </div>
+
+
+<!-- Layout Utama Borang Aspek -->
+<div class="workspace-layout">
+
+<!-- SIDEBAR BAHARU (SUDAH DITAMBAH BUTANG TOGGLE) -->
+<div class="aspek-sidebar-container no-print" id="aspekSidebar">
+    
+    <!-- 📌 1. BUTANG TOGGLE UNTUK KECILKAN/BESARKAN SIDEBAR -->
+    <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Kecilkan/Besarkan Sidebar">
+        <span id="toggleIcon">◀</span>
+    </button>
+
+    <!-- 📌 2. BALUTAN KANDUNGAN SIDEBAR -->
+    <div class="sidebar-content">
+        <h4 style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; color: #1e3a8a;">SENARAI ASPEK</h4>
+        <button class="btn-sidebar-item active" onclick="tukarTampilanAspekSidebar('ALL', this)">Papar Semua Aspek</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.1.1', this)">4.1.1 Perancang</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.2.1', this)">4.2.1 Pengawal (Proses)</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.2.2', this)">4.2.2 Pengawal (Suasana)</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.3.1', this)">4.3.1 Pembimbing</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.4.1', this)">4.4.1 Pendorong (Minda)</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.4.2', this)">4.4.2 Pendorong (Emosi)</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.5.1', this)">4.5.1 Penilai</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.6.1', this)">4.6.1 Pembelajar Aktif</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-buku-latihan', this)">Buku Latihan Murid</button>
+    </div>
+
+</div>
+
+<div class="aspek-content-area">
+
+            <!-- ASPEK 4.1.1 -->
+            <div class="card aspek-card" id="card-4.1.1" data-aspek="4.1.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.1.1: GURU SEBAGAI PERANCANG</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 10%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Menyediakan RPH yang mengandungi objektif boleh diukur dan aktiviti pembelajaran yang sesuai.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut pelbagai aras keupayaan murid, ii. mengikut peruntukan masa yang ditetapkan, dan iii. dengan mematuhi ketetapan kurikulum/arahan yang berkuat kuasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Menentukan kaedah pentaksiran dalam PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut pelbagai aras keupayaan murid, ii. mengikut peruntukan masa yang ditetapkan, dan iii. dengan mematuhi ketetapan kurikulum/arahan yang berkuat kuasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Menyediakan ABM / BBM / BBB / TMK.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut pelbagai aras keupayaan murid, ii. mengikut peruntukan masa yang ditetapkan, and iii. dengan mematuhi ketetapan kurikulum/arahan yang berkuat kuasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.1.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.2.1 -->
+            <div class="card aspek-card" id="card-4.2.1" data-aspek="4.2.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.2.1: GURU SEBAGAI PENGAWAL (PROSES)</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 10%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Mengelola isi pelajaran / skop pembelajaran yang dirancang.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. dengan menepati objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid/pembelajaran terbeza, dan iii. secara berterusan dalam PdPc.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Mengelola masa PdPc selaras dengan aktiviti pembelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. dengan menepati objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid/pembelajaran terbeza, dan iii. secara berterusan dalam PdPc.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Memberi peluang kepada penyertaan aktif murid.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. dengan menepati objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid/pembelajaran terbeza, and iii. secara berterusan dalam PdPc.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.2.2 -->
+            <div class="card aspek-card" id="card-4.2.2" data-aspek="4.2.2">
+                <div class="aspek-header">
+                    <span>ASPEK 4.2.2: GURU SEBAGAI PENGAWAL (SUASANA)</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 5%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Mengawasi komunikasi murid dalam PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah/mengikut kesesuaian, ii. secara menyeluruh meliputi semua murid, and iii. secara berterusan dalam PdPc/mengikut keperluan aktiviti pembelajaran.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Mengawasi perlakuan murid dalam PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah/mengikut kesesuaian, ii. secara menyeluruh meliputi semua murid, and iii. secara berterusan dalam PdPc/mengikut keperluan aktiviti pembelajaran.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Menyusun atur kedudukan murid.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah/mengikut kesesuaian, ii. secara menyeluruh meliputi semua murid, dan iii. secara berterusan dalam PdPc/mengikut keperluan aktiviti pembelajaran.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Mewujudkan suasana pembelajaran yang menyeronokkan.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah/mengikut kesesuaian, ii. secara menyeluruh meliputi semua murid, dan iii. secara berterusan dalam PdPc/mengikut keperluan aktiviti pembelajaran.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.2.2', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.3.1 -->
+            <div class="card aspek-card" id="card-4.3.1" data-aspek="4.3.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.3.1: GURU SEBAGAI PEMBIMBING</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 15%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Memberi tunjuk ajar/panduan menguasai isi pelajaran/konsep/fakta berkaitan pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut keperluan/pelbagai aras keupayaan murid, ii. dengan betul dan tepat, iii. secara berhemah, dan iv. secara bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Memberi tunjuk ajar/panduan menguasai kemahiran dalam aktiviti pembelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut keperluan/pelbagai aras keupayaan murid, ii. dengan betul dan tepat, iii. secara berhemah, dan iv. secara bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Memandu murid membuat keputusan dan menyelesaikan masalah dalam aktiviti.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut keperluan/pelbagai aras keupayaan murid, ii. dengan betul dan tepat, iii. secara berhemah, dan iv. secara bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Memandu murid menggunakan / memanfaatkan sumber pendidikan berkaitan pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut keperluan/pelbagai aras keupayaan murid, ii. dengan betul dan tepat, iii. secara berhemah, and iv. secara bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="e">
+                        <div class="tindakan-text">e) Menggabung/merentas/mengaitkan isi pelajaran dengan tajuk/unit/tema/nilai/kemahiran lain.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'e', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut keperluan/pelbagai aras keupayaan murid, ii. dengan betul dan tepat, iii. secara berhemah, and iv. secara bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'e', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'e', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'e', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara di atas</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.3.1', 'e', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara di atas</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.4.1 -->
+            <div class="card aspek-card" id="card-4.4.1" data-aspek="4.4.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.4.1: GURU SEBAGAI PENDORONG (MINDA)</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 25%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Merangsang murid berkomunikasi.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Merangsang murid berkolaboratif dalam aktiviti pembelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Mengemukakan soalan yang menjurus ke arah pemikiran kritis dan kreatif.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Mengajukan soalan/situasi mewujudkan proses membuat keputusan & penyelesaian masalah.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="e">
+                        <div class="tindakan-text">e) Mewujudkan peluang untuk murid memimpin.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'e', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. secara berterusan.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'e', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'e', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'e', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'e', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="f">
+                        <div class="tindakan-text">f) Menggalakkan murid mengemukakan soalan berkaitan isi pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'f', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. secara berterusan.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'f', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'f', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'f', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'f', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="g">
+                        <div class="tindakan-text">g) Menggalakkan murid memperoleh pengetahuan dan kemahiran secara kendiri.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'g', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut pelbagai aras keupayaan murid, and iii. secara berterusan.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'g', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'g', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'g', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.1', 'g', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.4.2 -->
+            <div class="card aspek-card" id="card-4.4.2" data-aspek="4.4.2">
+                <div class="aspek-header">
+                    <span>ASPEK 4.4.2: GURU SEBAGAI PENDORONG (EMOSI)</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 5%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Memberi pujian / galakan terhadap perlakuan positif.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah, ii. secara menyeluruh meliputi semua murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Memberi penghargaan terhadap hasil kerja / idea yang bernas.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah, ii. secara menyeluruh meliputi semua murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Memberi keyakinan dalam mengemukakan soalan / memberi respons.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. mengikut kesesuaian, ii. secara menyeluruh meliputi semua murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Prihatin terhadap keperluan kebajikan / emosi murid.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. secara berhemah, ii. secara menyeluruh meliputi semua murid, and iii. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira perkara (i) & (ii) / (i) & (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira perkara (ii) dan (iii)</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.4.2', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.5.1 -->
+            <div class="card aspek-card" id="card-4.5.1" data-aspek="4.5.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.5.1: GURU SEBAGAI PENILAI</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 10%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Menggunakan pelbagai kaedah pentaksiran dalam PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut arahan pelaksanaan pentaksiran yang berkuat kuasa/ketetapan kurikulum, iii. secara menyeluruh kepada semua murid, dan iv. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Menjalankan aktiviti pemulihan / pengayaan dalam PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut ketetapan kurikulum, iii. secara menyeluruh kepada semua murid, dan iv. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Memberi latihan / tugasan berkaitan pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut ketetapan kurikulum, iii. secara menyeluruh dari segi kecukupan dan kecakupan, dan iv. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Membuat refleksi PdPc.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut arahan pelaksanaan pentaksiran yang berkuat kuasa / ketetapan kurikulum, iii. secara menyeluruh kepada semua murid, dan iv. dari semasa ke semasa.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="e">
+                        <div class="tindakan-text">e) Menyemak / menilai hasil kerja / gerak kerja / latihan / tugasan.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'e', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">i. berdasarkan objektif pelajaran, ii. mengikut ketetapan kurikulum, iii. secara menyeluruh kepada semua murid, dan iv. secara berterusan/tekal/segera.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'e', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Mengambil kira mana-mana tiga (3) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'e', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Mengambil kira mana-mana dua (2) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'e', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Mengambil kira mana-mana satu (1) perkara</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.5.1', 'e', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak mengambil kira mana-mana perkara</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASPEK 4.6.1 -->
+            <div class="card aspek-card" id="card-4.6.1" data-aspek="4.6.1">
+                <div class="aspek-header">
+                    <span>ASPEK 4.6.1: MURID SEBAGAI PEMBELAJAR AKTIF</span>
+                    <span style="font-size: 0.8rem; opacity: 0.9;">Wajaran: 20%</span>
+                </div>
+                <div class="aspek-body">
+                    <div class="tindakan-row" data-item="a">
+                        <div class="tindakan-text">a) Murid memberi respons berkaitan isi pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'a', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 90% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'a', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 80%-89% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'a', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 50%-79% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'a', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan 1%-49% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'a', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="b">
+                        <div class="tindakan-text">b) Murid berkomunikasi dalam melaksanakan aktiviti pembelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'b', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 90% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'b', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 80%-89% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'b', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 50%-79% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'b', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan 1%-49% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'b', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="c">
+                        <div class="tindakan-text">c) Murid melaksanakan aktiviti pembelajaran secara kolaboratif.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'c', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 90% hingga 100% murid bagi tindakan utama and pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'c', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 80%-89% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'c', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 50%-79% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'c', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan 1%-49% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'c', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="d">
+                        <div class="tindakan-text">d) Murid memberi respons yang menjurus ke arah pemikiran kritis dan kreatif berkaitan isi pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'd', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 50% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'd', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 25%-49% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'd', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 10%-24% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'd', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan <10% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'd', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="e">
+                        <div class="tindakan-text">e) Murid mengemukakan soalan berkaitan isi pelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'e', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 50% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'e', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 25%-49% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'e', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 10%-24% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'e', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan <10% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'e', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="f">
+                        <div class="tindakan-text">f) Murid mengaitkan isi pelajaran dengan kehidupan murid / isu lokal / global.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'f', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">with pelibatan 50% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'f', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 25%-49% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'f', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 10%-24% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'f', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan <10% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'f', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                    <div class="tindakan-row" data-item="g">
+                        <div class="tindakan-text">g) Murid membuat keputusan / menyelesaikan masalah dalam aktiviti pembelajaran.</div>
+                        <div class="skala-container">
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'g', 4, this)"><span class="skala-title">Skor 4</span><span class="skala-desc">dengan pelibatan 50% hingga 100% murid bagi tindakan utama dan pelibatan melebihi 50%-100% murid bagi tindakan impak, i. selaras dengan objektif pelajaran, ii. dengan yakin, dan iii. secara berhemah/saling menghormati/bersungguh-sungguh.</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'g', 3, this)"><span class="skala-title">Skor 3</span><span class="skala-desc">Pelibatan 25%-49% bagi tindakan utama, pelibatan 25%-49% bagi impak & penuhi 2 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'g', 2, this)"><span class="skala-title">Skor 2</span><span class="skala-desc">Pelibatan 10%-24% bagi tindakan utama, pelibatan 10%-24% bagi impak & penuhi 1 kriteria kualiti</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'g', 1, this)"><span class="skala-title">Skor 1</span><span class="skala-desc">Pelibatan <10% bagi tindakan utama, pelibatan <10% bagi impak & penuhi sekurang-kurangnya 1 kriteria</span></div>
+                            <div class="skala-btn" onclick="pilihSkorMikro('4.6.1', 'g', 0, this)"><span class="skala-title">Skor 0</span><span class="skala-desc">Tidak memenuhi mana-mana kriteria di atas</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       
+
+
+        <!-- SEKSYEN REKOD SEMAKAN BUKU LATIHAN -->
+        <div class="aspek card" id="card-buku-latihan">
+            <h2>Rekod Penyemakan Buku Latihan / Hasil Kerja Murid oleh Pentadbiran</h2>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px;">Sila beri skor gred penilaian dari julat 0 hingga 5 (5 adalah terbaik) bagi setiap elemen pematuhan hasil kerja murid di bawah.</p>
+            <table class="buku-table">
+                <thead>
+                    <tr>
+                        <th>Aspek Buku / Tugasan yang Dinilai</th>
+                        <th style="width: 120px; text-align: center;">Skor (0-5)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-subheading"><td colspan="2">A. Latihan yang Diberi</td></tr>
+                    <tr><td>1. Mengikut keupayaan dan kebolehan murid</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="1"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>2. Pelbagai jenis latihan / tugasan</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>3. Arahan / Soalan tugasan jelas</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="3"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>4. Munasabah dari segi bilangan</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="4"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select></td></tr>
+                    <tr><td>5. Mempunyai catatan tarikh dan hari</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="5"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    
+                    <tr class="bg-subheading"><td colspan="2">B. Pemeriksaan Latihan oleh Guru</td></tr>
+                    <tr><td>6. Menunjukkan kesilapan murid</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="6"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select></td></tr>
+                    <tr><td>7. Diperiksa dalam tempoh munasabah</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="7"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select></td></tr>
+                    <tr><td>8. Memberi ulasan yang membina</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="8"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
+                    <tr><td>9. Memberi markah/gred/kata pujian/bintang</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="9"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select></td></tr>
+                    <tr><td>10. Mempunyai tarikh diperiksa</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="10"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>11. Mempunyai tandatangan guru</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="11"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    
+                    <tr class="bg-subheading"><td colspan="2">C. Pelaksanaan Tugasan oleh Murid</td></tr>
+                    <tr><td>12. Lengkap</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="12"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>13. Kemas dan bersih</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="13"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>14. Membuat latihan dengan betul</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="14"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                    <tr><td>15. Membuat pembetulan bagi latihan salah</td><td><select class="buku-select" onchange="hitungSkorBuku()" data-index="15"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+
+    <!-- Mesej Ulasan -->
+    <div class="card" style="margin-top: 20px;">
+        <div class="form-group">
+            <label style="font-weight: bold;">Ulasan / Rumusan Kualitatif Tambahan Pegawai Pentadbir</label>
+            <textarea id="gUlasan" rows="3" placeholder="Masukkan kekuatan utama atau cadangan intervensi penambahbaikan pengajaran guru..."></textarea>
+        </div>
+    </div>
+
+
+<!-- Butang Pengurusan -->
+    <div class="btn-container">
+        <button class="btn btn-secondary" onclick="resetSemuaBorang()">Set Semula</button>
+
+        <button class="btn btn-primary" onclick="janaDokumenLaporanAkhir()">Jana & Papar Laporan Cetak</button>
+
+    </div>
+</div>
+
+
+<!-- TEMPLAT DOKUMEN RASMI READY-TO-PRINT -->
+<div class="print-section" id="printSectionLayout">
+    <div class="print-header">
+        <h2>BORANG SKOR GURU - STANDARD 4 SKPMg2</h2>
+        <p>SK Desa Aman | Pengurusan Akademik Sekolah</p>
+    </div>
+
+    <table class="print-table">
+        <tr>
+            <td class="bg-gray-row" style="width: 15%;">Pegawai Penilai:</td>
+            <td id="pPenilai" colspan="3" style="font-weight: bold; background-color: #fafafa;"></td>
+        </tr>
+        <tr>
+            <td class="bg-gray-row" style="width: 15%;">Nama Guru:</td>
+            <td id="pNama" style="width: 35%;"></td>
+            <td class="bg-gray-row" style="width: 15%;">No. K/P:</td>
+            <td id="pKp" style="width: 35%;"></td>
+        </tr>
+        <tr>
+            <td class="bg-gray-row">Jenis Penilaian:</td>
+            <td id="pJenis"></td>
+            <td class="bg-gray-row">Mata Pelajaran:</td>
+            <td id="pSubjek"></td>
+        </tr>
+        <tr>
+            <td class="bg-gray-row">Kelas:</td>
+            <td id="pKelas"></td>
+            <td class="bg-gray-row">Tarikh Sesi:</td>
+            <td id="pTarikh"></td>
+        </tr>
+    </table>
+
+    <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase;">1. Rumusan Pencapaian PdPc Standard 4</h3>
+    <table class="print-table">
+        <thead>
+            <tr>
+                <th>KOD ASPEK</th>
+                <th>ASPEK PENILAIAN PEMBELAJARAN DAN PEMUDAHCARAAN</th>
+                <th class="text-center">WAJARAN</th>
+                <th class="text-center">SKOR PURATA (0-4)</th>
+                <th class="text-center">SKOR WAJARAN (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>4.1.1</td><td>Guru Sebagai Perancang</td><td class="text-center">10%</td><td class="text-center" id="s411_s">0.00</td><td class="text-center" id="s411_w">0.00</td></tr>
+            <tr><td>4.2.1</td><td>Guru Sebagai Pengawal (Proses)</td><td class="text-center">10%</td><td class="text-center" id="s421_s">0.00</td><td class="text-center" id="s421_w">0.00</td></tr>
+            <tr><td>4.2.2</td><td>Guru Sebagai Pengawal (Suasana)</td><td class="text-center">5%</td><td class="text-center" id="s422_s">0.00</td><td class="text-center" id="s422_w">0.00</td></tr>
+            <tr><td>4.3.1</td><td>Guru Sebagai Pembimbing</td><td class="text-center">15%</td><td class="text-center" id="s431_s">0.00</td><td class="text-center" id="s431_w">0.00</td></tr>
+            <tr><td>4.4.1</td><td>Guru Sebagai Pendorong (Minda)</td><td class="text-center">25%</td><td class="text-center" id="s441_s">0.00</td><td class="text-center" id="s441_w">0.00</td></tr>
+            <tr><td>4.4.2</td><td>Guru Sebagai Pendorong (Emosi)</td><td class="text-center">5%</td><td class="text-center" id="s442_s">0.00</td><td class="text-center" id="s442_w">0.00</td></tr>
+            <tr><td>4.5.1</td><td>Guru Sebagai Penilai</td><td class="text-center">10%</td><td class="text-center" id="s451_s">0.00</td><td class="text-center" id="s451_w">0.00</td></tr>
+            <tr><td>4.6.1</td><td>Murid Sebagai Pembelajar Aktif</td><td class="text-center">20%</td><td class="text-center" id="s461_s">0.00</td><td class="text-center" id="s461_w">0.00</td></tr>
+            <tr class="bg-gray-row">
+                <td colspan="2">JUMLAH BESAR WAJARAN STANDARD 4</td>
+                <td class="text-center">100%</td>
+                <td class="text-center">-</td>
+                <td class="text-center" id="pFinalPdPc" style="font-size:0.95rem; font-weight:bold; color:#1e3a8a;">0.00%</td>
+            </tr>
+        </tbody>
+    </table>
+    <p style="font-size: 0.8rem; margin-bottom: 20px;"><strong>TARAF PENCAPAIAN PDPC:</strong> <span id="pTarafPdPc" style="font-weight: bold;"></span></p>
+
+    <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase;">2. Rumusan Penyemakan Buku Latihan Murid oleh Pentadbir</h3>
+    <table class="print-table">
+        <tr>
+            <td class="bg-gray-row" style="width: 30%;">Jumlah Skor Buku Latihan:</td>
+            <td id="pTotalSkorBuku" style="width: 20%;">0 / 75</td>
+            <td class="bg-gray-row" style="width: 30%;">Peratusan Akhir Buku Latihan:</td>
+            <td id="pPeratusBuku" style="width: 20%; font-weight: bold;">0.00%</td>
+        </tr>
+    </table>
+
+    <div style="border: 1px solid #000; padding: 10px; margin-top: 15px; font-size: 0.8rem;">
+        <p><strong>ULASAN KESELURUHAN & CADANGAN PENTADBIR:</strong></p>
+        <p id="pUlasan" style="margin-top: 5px; font-style: italic; white-space: pre-line;"></p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 50px; text-align: center; font-size: 0.85rem;">
+        <div>
+            <p>.......................................................</p>
+            <p style="font-weight: bold; margin-top: 3px;">Tandatangan & Cop Pentadbir</p>
+            <p style="font-size: 0.75rem; color:#444;" id="pSignNamaPenilai">(Pegawai Penilai)</p>
+        </div>
+        <div>
+            <p>.......................................................</p>
+            <p style="font-weight: bold; margin-top: 3px;">Tandatangan Guru Dinilai</p>
+            <p style="font-size: 0.75rem; color:#444;">(Siti Aminah binti Rahman)</p>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;" id="btnRealPrintAction">
+        <button class="btn btn-primary" onclick="window.print()">Cetak Dokumen / Simpan PDF</button>
+	<button class="btn btn-success" onclick="muatTurunCSV()">Muat Turun CSV</button>
+        <button class="btn btn-secondary" onclick="kembaliKeModBorang()">Kembali Edit Data</button>
+    </div>
+</div>
+
+<script>
+    const databaseSkorMikro = {
+        '4.1.1': { 'a': -1, 'b': -1, 'c': -1 },
+        '4.2.1': { 'a': -1, 'b': -1, 'c': -1 },
+        '4.2.2': { 'a': -1, 'b': -1, 'c': -1, 'd': -1 },
+        '4.3.1': { 'a': -1, 'b': -1, 'c': -1, 'd': -1, 'e': -1 },
+        '4.4.1': { 'a': -1, 'b': -1, 'c': -1, 'd': -1, 'e': -1, 'f': -1, 'g': -1 },
+        '4.4.2': { 'a': -1, 'b': -1, 'c': -1, 'd': -1 },
+        '4.5.1': { 'a': -1, 'b': -1, 'c': -1, 'd': -1, 'e': -1 },
+        '4.6.1': { 'a': -1, 'b': -1, 'c': -1, 'd': -1, 'e': -1, 'f': -1, 'g': -1 }
+    };
+
+    const wajaranAspek = {
+        '4.1.1': 10, '4.2.1': 10, '4.2.2': 5, '4.3.1': 15,
+        '4.4.1': 25, '4.4.2': 5, '4.5.1': 10, '4.6.1': 20
+    };
+
+    function pilihSkorMikro(aspek, item, skor, element) {
+        const parent = element.parentElement;
+        const buttons = parent.querySelectorAll('.skala-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+
+        element.classList.add('active');
+        databaseSkorMikro[aspek][item] = skor;
+
+        hitungKalkulasiPdPc();
+    }
+
+function muatTurunCSV() {
+    // 1. Ambil data maklumat maklumat utama dari elemen HTML
+    const pPenilai = document.getElementById('pPenilai')?.innerText || '';
+    const pNama = document.getElementById('pNama')?.innerText || '';
+    const pKp = document.getElementById('pKp')?.innerText || '';
+    const pJenis = document.getElementById('pJenis')?.innerText || '';
+    const pSubjek = document.getElementById('pSubjek')?.innerText || '';
+    const pKelas = document.getElementById('pKelas')?.innerText || '';
+    const pTarikh = document.getElementById('pTarikh')?.innerText || '';
+    const pFinalPdPc = document.getElementById('pFinalPdPc')?.innerText || '0.00%';
+    const pTarafPdPc = document.getElementById('pTarafPdPc')?.innerText || '';
+    const pTotalSkorBuku = document.getElementById('pTotalSkorBuku')?.innerText || '0 / 75';
+    const pPeratusBuku = document.getElementById('pPeratusBuku')?.innerText || '0.00%';
+    const pUlasan = (document.getElementById('pUlasan')?.innerText || '').replace(/"/g, '""');
+
+    // 2. Senarai Data Jadual Aspek Standard 4
+    const senaraiAspek = [
+        ['4.1.1', 'Guru Sebagai Perancang', '10%', document.getElementById('s411_s')?.innerText || '0.00', document.getElementById('s411_w')?.innerText || '0.00'],
+        ['4.2.1', 'Guru Sebagai Pengawal (Proses)', '10%', document.getElementById('s421_s')?.innerText || '0.00', document.getElementById('s421_w')?.innerText || '0.00'],
+        ['4.2.2', 'Guru Sebagai Pengawal (Suasana)', '5%', document.getElementById('s422_s')?.innerText || '0.00', document.getElementById('s422_w')?.innerText || '0.00'],
+        ['4.3.1', 'Guru Sebagai Pembimbing', '15%', document.getElementById('s431_s')?.innerText || '0.00', document.getElementById('s431_w')?.innerText || '0.00'],
+        ['4.4.1', 'Guru Sebagai Pendorong (Minda)', '25%', document.getElementById('s441_s')?.innerText || '0.00', document.getElementById('s441_w')?.innerText || '0.00'],
+        ['4.4.2', 'Guru Sebagai Pendorong (Emosi)', '5%', document.getElementById('s442_s')?.innerText || '0.00', document.getElementById('s442_w')?.innerText || '0.00'],
+        ['4.5.1', 'Guru Sebagai Penilai', '10%', document.getElementById('s451_s')?.innerText || '0.00', document.getElementById('s451_w')?.innerText || '0.00'],
+        ['4.6.1', 'Murid Sebagai Pembelajar Aktif', '20%', document.getElementById('s461_s')?.innerText || '0.00', document.getElementById('s461_w')?.innerText || '0.00']
+    ];
+
+    // 3. Susun baris CSV mengikut susunan borang HTML
+    let csvRows = [];
+
+    // Header Tajuk
+    csvRows.push(['BORANG SKOR GURU - STANDARD 4 SKPMg2']);
+    csvRows.push(['SK Desa Aman | Pengurusan Akademik Sekolah']);
+    csvRows.push([]); // Baris Kosong
+
+    // Maklumat Pegawai & Guru
+    csvRows.push(['Pegawai Penilai:', `"${pPenilai}"`, '', '']);
+    csvRows.push(['Nama Guru:', `"${pNama}"`, 'No. K/P:', `"${pKp}"`]);
+    csvRows.push(['Jenis Penilaian:', `"${pJenis}"`, 'Mata Pelajaran:', `"${pSubjek}"`]);
+    csvRows.push(['Kelas:', `"${pKelas}"`, 'Tarikh Sesi:', `"${pTarikh}"`]);
+    csvRows.push([]);
+
+    // Seksyen 1: Rumusan PdPc
+    csvRows.push(['1. RUMUSAN PENCAPAIAN PDPC STANDARD 4']);
+    csvRows.push(['KOD ASPEK', 'ASPEK PENILAIAN PEMBELAJARAN DAN PEMUDAHCARAAN', 'WAJARAN', 'SKOR PURATA (0-4)', 'SKOR WAJARAN (%)']);
+
+    senaraiAspek.forEach(row => {
+        csvRows.push([row[0], `"${row[1]}"`, row[2], row[3], row[4]]);
+    });
+
+    csvRows.push(['JUMLAH BESAR WAJARAN STANDARD 4', '', '100%', '-', `"${pFinalPdPc}"`]);
+    csvRows.push(['TARAF PENCAPAIAN PDPC:', `"${pTarafPdPc}"`]);
+    csvRows.push([]);
+
+    // Seksyen 2: Buku Latihan
+    csvRows.push(['2. RUMUSAN PENYEMAKAN BUKU LATIHAN MURID OLEH PENTADBIR']);
+    csvRows.push(['Jumlah Skor Buku Latihan:', `"${pTotalSkorBuku}"`, 'Peratusan Akhir Buku Latihan:', `"${pPeratusBuku}"`]);
+    csvRows.push([]);
+
+    // Ulasan & Tandatangan
+    csvRows.push(['ULASAN KESELURUHAN & CADANGAN PENTADBIR:']);
+    csvRows.push([`"${pUlasan}"`]);
+    csvRows.push([]);
+    csvRows.push(['Tandatangan & Cop Pentadbir', '', 'Tandatangan Guru Dinilai']);
+    csvRows.push([`"${pPenilai}"`, '', `"${pNama}"`]);
+
+    // 4. Tukar kepada Format String CSV (BOM \uFEFF ditambah untuk sokongan Unicode Bahasa Melayu/Excel)
+    const csvContent = '\uFEFF' + csvRows.map(e => e.join(',')).join('\n');
+
+    // 5. Muat turun fail secara automatik
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const namaFail = `Skor_SKPMg2_${pNama ? pNama.replace(/\s+/g, '_') : 'Guru'}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', namaFail);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+    function hitungKalkulasiPdPc() {
+        let totalSkorWajaranSistem = 0;
+        let aspekKeys = Object.keys(databaseSkorMikro);
+        let purataAspekSimpanan = {};
+
+        aspekKeys.forEach(aspek => {
+            let itemKeys = Object.keys(databaseSkorMikro[aspek]);
+            let totalSkorAspekIni = 0;
+            let diisiCount = 0;
+
+            itemKeys.forEach(item => {
+                if (databaseSkorMikro[aspek][item] !== -1) {
+                    totalSkorAspekIni += databaseSkorMikro[aspek][item];
+                    diisiCount++;
+                }
+            });
+
+            let purataAspek = diisiCount > 0 ? (totalSkorAspekIni / diisiCount) : 0;
+            purataAspekSimpanan[aspek] = purataAspek;
+
+            let wajaranItem = (purataAspek / 4) * wajaranAspek[aspek];
+            totalSkorWajaranSistem += wajaranItem;
+        });
+
+        document.getElementById('valPdPc').innerText = totalSkorWajaranSistem.toFixed(2) + "%";
+
+        const badge = document.getElementById('tarafPdPc');
+        badge.className = "gred-badge";
+
+        let taraf = "-";
+        if (totalSkorWajaranSistem >= 90) { taraf = "CEMERLANG"; badge.classList.add('gred-CEMERLANG'); }
+        else if (totalSkorWajaranSistem >= 80) { taraf = "BAIK"; badge.classList.add('gred-BAIK'); }
+        else if (totalSkorWajaranSistem >= 50) { taraf = "MEMUASKAN"; badge.classList.add('gred-MEMUASKAN'); }
+        else if (totalSkorWajaranSistem > 0) { taraf = "LEMAH"; badge.classList.add('gred-LEMAH'); }
+
+        badge.innerText = (totalSkorWajaranSistem === 0) ? "-" : taraf;
+
+        return { totalSkorWajaranSistem, purataAspekSimpanan, taraf: (totalSkorWajaranSistem === 0) ? "-" : taraf };
+    }
+
+    function hitungSkorBuku() {
+        let selects = document.querySelectorAll('.buku-select');
+        let totalSkorBuku = 0;
+        
+        selects.forEach(sel => {
+            totalSkorBuku += parseInt(sel.value) || 0;
+        });
+
+        let peratusBuku = (totalSkorBuku / 75) * 100;
+
+        document.getElementById('valBuku').innerText = `${totalSkorBuku} / 75`;
+        document.getElementById('peratusBuku').innerText = peratusBuku.toFixed(2) + "%";
+
+        return { totalSkorBuku, peratusBuku };
+    }
+
+    function janaDokumenLaporanAkhir() {
+        let aspekKeys = Object.keys(databaseSkorMikro);
+        let adaBelumTanda = false;
+
+        aspekKeys.forEach(aspek => {
+            let itemKeys = Object.keys(databaseSkorMikro[aspek]);
+            itemKeys.forEach(item => {
+                if (databaseSkorMikro[aspek][item] === -1) adaBelumTanda = true;
+            });
+        });
+
+        const alertBanner = document.getElementById('statusAlert');
+        if (adaBelumTanda) {
+            alertBanner.style.display = 'block';
+            alertBanner.style.backgroundColor = '#fee2e2';
+            alertBanner.style.color = '#991b1b';
+            alertBanner.innerText = 'Ralat: Sila pastikan anda menanda kesemua kotak skala penskoran mikro bagi setiap tindakan aspek sebelum mencetak.';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        alertBanner.style.display = 'none';
+
+        const namaPenilai = document.getElementById('gPenilai').value || "-";
+        document.getElementById('pPenilai').innerText = namaPenilai;
+        document.getElementById('pSignNamaPenilai').innerText = `(${namaPenilai})`;
+
+        document.getElementById('pNama').innerText = document.getElementById('gNama').value || "-";
+        document.getElementById('pKp').innerText = document.getElementById('gKp').value || "-";
+        document.getElementById('pJenis').innerText = document.getElementById('gJenis').value;
+        document.getElementById('pSubjek').innerText = document.getElementById('gSubjek').value || "-";
+        document.getElementById('pKelas').innerText = document.getElementById('gKelas').value || "-";
+        
+        let t = document.getElementById('gTarikh').value;
+        if(t) {
+            let d = new Date(t);
+            document.getElementById('pTarikh').innerText = d.toLocaleDateString('ms-MY', {day:'numeric', month:'long', year:'numeric'});
+        }
+
+        document.getElementById('pUlasan').innerText = document.getElementById('gUlasan').value || "Tiada ulasan bertulis disediakan.";
+
+        const dataPdPc = hitungKalkulasiPdPc();
+        const dataBuku = hitungSkorBuku();
+
+        aspekKeys.forEach(aspek => {
+            let idClean = aspek.replace(/\./g, '');
+            let purata = dataPdPc.purataAspekSimpanan[aspek];
+            let wajaranNilai = (purata / 4) * wajaranAspek[aspek];
+
+            document.getElementById(`s${idClean}_s`).innerText = purata.toFixed(2);
+            document.getElementById(`s${idClean}_w`).innerText = wajaranNilai.toFixed(2) + "%";
+        });
+
+        document.getElementById('pFinalPdPc').innerText = dataPdPc.totalSkorWajaranSistem.toFixed(2) + "%";
+        document.getElementById('pTarafPdPc').innerText = dataPdPc.taraf;
+
+        document.getElementById('pTotalSkorBuku').innerText = `${dataBuku.totalSkorBuku} / 75`;
+        document.getElementById('pPeratusBuku').innerText = dataBuku.peratusBuku.toFixed(2) + "%";
+
+        const pSection = document.getElementById('printSectionLayout');
+        pSection.style.display = 'block';
+        pSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function kembaliKeModBorang() {
+        document.getElementById('printSectionLayout').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+  
+   function resetSemuaBorang() {
+        const btns = document.querySelectorAll('.skala-btn');
+        btns.forEach(b => b.classList.remove('active'));
+
+        Object.keys(databaseSkorMikro).forEach(aspek => {
+            Object.keys(databaseSkorMikro[aspek]).forEach(item => {
+                databaseSkorMikro[aspek][item] = -1;
+            });
+        });
+
+        document.getElementById('gUlasan').value = '';
+        document.getElementById('printSectionLayout').style.display = 'none';
+        document.getElementById('statusAlert').style.display = 'none';
+
+        document.querySelectorAll('.buku-select').forEach(s => s.value = "5");
+
+        hitungKalkulasiPdPc();
+        hitungSkorBuku();
+
+    };
+
+function tukarTampilanAspekSidebar(idCard, element) {
+    // 1. Tukar warna butang aktif
+    const btnItems = document.querySelectorAll('.btn-sidebar-item');
+    btnItems.forEach(btn => btn.classList.remove('active'));
+    element.classList.add('active');
+
+    const semuaKadAspek = document.querySelectorAll('.aspek-card');
+    const kadBukuLatihan = document.getElementById('card-buku-latihan');
+
+    // 2. Jika tekan butang "Papar Semua Aspek"
+    if (idCard === 'ALL') {
+        semuaKadAspek.forEach(kad => kad.style.display = 'block');
+        if (kadBukuLatihan) kadBukuLatihan.style.display = 'block';
+        return;
+    }
+
+    // 3. Jika tekan "Buku Latihan Murid"
+    if (idCard === 'card-buku-latihan') {
+        semuaKadAspek.forEach(kad => kad.style.display = 'none'); // Sembunyi semua aspek SKPMg2
+        if (kadBukuLatihan) kadBukuLatihan.style.display = 'block'; // Papar buku latihan sahaja
+        return;
+    }
+
+    // 4. Jika tekan Aspek spesifik (cth: 4.1.1, 4.6.1, dll)
+    semuaKadAspek.forEach(kad => {
+        if (kad.id === idCard) {
+            kad.style.display = 'block';
+        } else {
+            kad.style.display = 'none';
+        }
+    });
+
+    // Sembunyikan kad buku latihan apabila fokus pada satu aspek sahaja
+    if (kadBukuLatihan) kadBukuLatihan.style.display = 'none';
+}
+
+</script>
+
+<!-- MULA: KOD AUTO-SAVE (LOCAL STORAGE) -->
+<script>
+    // Fungsi ini akan menyimpan data ke dalam memori komputer (Cache)
+    function simpanSemuaKeCache() {
+        // 1. Simpan markah dari databaseSkorMikro
+        if (typeof databaseSkorMikro !== 'undefined') {
+            localStorage.setItem('skpmg2_skor', JSON.stringify(databaseSkorMikro));
+        }
+        
+        // 2. Simpan kedudukan butang yang berwarna (aktif)
+        let activeButtons = [];
+        document.querySelectorAll('.skala-btn').forEach((btn, index) => {
+            if(btn.classList.contains('active')) {
+                activeButtons.push(index);
+            }
+        });
+        localStorage.setItem('skpmg2_butangAktif', JSON.stringify(activeButtons));
+        
+        // 3. Simpan maklumat input teks, tarikh, dropdown dan ulasan
+        document.querySelectorAll('input[type="text"], input[type="date"], textarea, select').forEach((input, index) => {
+            let key = input.id || input.name || 'input_' + index;
+            localStorage.setItem('skpmg2_text_' + key, input.value);
+        });
+    }
+
+    // Fungsi ini akan memuat naik data apabila laman web dibuka atau di-refresh
+    window.addEventListener('load', function() {
+        try {
+            // A. Muatkan semula data markah (Cara Selamat)
+            let savedSkor = localStorage.getItem('skpmg2_skor');
+            if (savedSkor && typeof databaseSkorMikro !== 'undefined') {
+                let parsedData = JSON.parse(savedSkor);
+                Object.keys(parsedData).forEach(aspek => {
+                    if (databaseSkorMikro[aspek]) {
+                        Object.keys(parsedData[aspek]).forEach(item => {
+                            databaseSkorMikro[aspek][item] = parsedData[aspek][item];
+                        });
+                    }
+                });
+            }
+
+            // B. Warnakan semula butang yang telah ditekan sebelum ini
+            let savedButtons = localStorage.getItem('skpmg2_butangAktif');
+            if (savedButtons) {
+                let activeIndexes = JSON.parse(savedButtons);
+                let allBtns = document.querySelectorAll('.skala-btn');
+                activeIndexes.forEach(index => {
+                    if(allBtns[index]) {
+                        allBtns[index].classList.add('active');
+                    }
+                });
+            }
+
+            // C. Masukkan semula teks (Nama, Tarikh, Ulasan) yang ditaip
+            document.querySelectorAll('input[type="text"], input[type="date"], textarea, select').forEach((input, index) => {
+                let key = input.id || input.name || 'input_' + index;
+                let savedText = localStorage.getItem('skpmg2_text_' + key);
+                if (savedText !== null) {
+                    input.value = savedText;
+                }
+                
+                // Arahan supaya ia automatik 'save' setiap kali cikgu menaip
+                input.addEventListener('input', simpanSemuaKeCache);
+                input.addEventListener('change', simpanSemuaKeCache);
+            });
+
+            // D. Arahan supaya ia automatik 'save' setiap kali butang ditekan
+            document.querySelectorAll('.skala-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Tunggu sekejap (100ms) untuk pastikan markah asal dikira dahulu
+                    setTimeout(simpanSemuaKeCache, 100); 
+                });
+            });
+
+            // E. Kemas kini kiraan markah di paparan (jika perlu)
+            if(typeof hitungKalkulasiPdPc === 'function') hitungKalkulasiPdPc();
+            if(typeof hitungSkorBuku === 'function') hitungSkorBuku();
+            
+        } catch (error) {
+            console.log("Ralat memuatkan cache:", error);
+        }
+    });
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('aspekSidebar');
+    const icon = document.getElementById('toggleIcon');
+    
+    // Switch status class 'collapsed'
+    sidebar.classList.toggle('collapsed');
+    
+    // Tukar arah ikon anak panah (Kiri ◀ / Kanan ▶)
+    if (sidebar.classList.contains('collapsed')) {
+        icon.innerText = '▶';
+    } else {
+        icon.innerText = '◀';
+    }
+}
+
+</script>
+<!-- TAMAT: KOD AUTO-SAVE -->
+
+</body>
+</html>
