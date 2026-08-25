@@ -1717,17 +1717,7 @@ function toggleSidebar() {
     }
 }
 
-// Mengemaskini nama tandatangan secara automatik semasa menaip
-document.getElementById('gNama').addEventListener('input', function() {
-    const namaInput = this.value;
-    const elemTandatangan = document.getElementById('namaTandatangan');
-    
-    if (namaInput.trim() !== "") {
-        elemTandatangan.innerText = "(" + namaInput + ")";
-    } else {
-        elemTandatangan.innerText = "( ....................................................... )";
-    }
-});
+
 
 </script>
 <!-- TAMAT: KOD AUTO-SAVE -->
