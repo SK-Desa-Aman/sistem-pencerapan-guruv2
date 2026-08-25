@@ -578,45 +578,7 @@ header p {
         </div>
     </div>
 
-    <!-- Maklumat Guru & Sesi -->
-    <div class="card" style="margin-top: 25px;">
-        <h2>Maklumat Guru & Sesi</h2>
-        <div class="grid-inputs">
-            <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 5px;">
-                <label style="color: var(--primary); font-weight: bold;">Nama Pegawai Penilai / Pentadbir</label>
-                <input type="text" id="gPenilai" value="Nama Penilai / Pentadbir" style="border-color: var(--primary-light); background-color: #f0f7ff;">
-            </div>
-            <div class="form-group">
-                <label>Nama Guru Dinilai</label>
-                <input type="text" id="gNama" value="Nama Penuh Guru">
-            </div>
-            <div class="form-group">
-                <label>No. Kad Pengenalan</label>
-                <input type="text" id="gKp" value="Contoh : 880214-08-5432">
-            </div>
-            <div class="form-group">
-                <label>Jenis Penilaian</label>
-                <select id="gJenis">
-                    
-                    <option value="Pencerapan 1">Pencerapan 1</option>
-                    <option value="Pencerapan 2">Pencerapan 2</option>
-                    
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Mata Pelajaran</label>
-                <input type="text" id="gSubjek" value="Subjek">
-            </div>
-            <div class="form-group">
-                <label>Kelas</label>
-                <input type="text" id="gKelas" value="2 UIAM">
-            </div>
-            <div class="form-group">
-                <label>Tarikh Sesi</label>
-                <input type="date" id="gTarikh" value="2026-08-12">
-            </div>
-        </div>
-    </div>
+ 
 
 
 <!-- Layout Utama Borang Aspek -->
@@ -633,7 +595,8 @@ header p {
     <!-- 📌 2. BALUTAN KANDUNGAN SIDEBAR -->
     <div class="sidebar-content">
         <h4 style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; color: #1e3a8a;">SENARAI ASPEK</h4>
-        <button class="btn-sidebar-item active" onclick="tukarTampilanAspekSidebar('ALL', this)">Papar Semua Aspek</button>
+        <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-maklumat-guru', this)">Maklumat Guru & Sesi</button>
+	<button class="btn-sidebar-item active" onclick="tukarTampilanAspekSidebar('ALL', this)">Papar Semua Aspek</button>
         <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.1.1', this)">4.1.1 Perancang</button>
         <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.2.1', this)">4.2.1 Pengawal (Proses)</button>
         <button class="btn-sidebar-item" onclick="tukarTampilanAspekSidebar('card-4.2.2', this)">4.2.2 Pengawal (Suasana)</button>
@@ -648,6 +611,49 @@ header p {
 </div>
 
 <div class="aspek-content-area">
+
+ <!-- SEKSYEN MAKLUMAT GURU & SESI (SUDAH DIUBAH KEPADA KAD ASPEK) -->
+<div class="aspek-card" id="card-maklumat-guru" style="margin-top: 25px;">
+    <div class="aspek-header">
+        <span>Maklumat Guru & Sesi Penilaian</span>
+    </div>
+    <div class="aspek-body" style="padding: 15px;">
+        <div class="grid-inputs">
+            <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 5px;">
+                <label style="color: var(--primary); font-weight: bold;">Nama Pegawai Penilai / Pentadbir</label>
+                <input type="text" id="gPenilai" value="Nama Penilai / Pentadbir" style="border-color: var(--primary-light); background-color: #f0f7ff;">
+            </div>
+            <div class="form-group">
+                <label>Nama Guru Dinilai</label>
+                <input type="text" id="gNama" value="Nama Penuh Guru">
+            </div>
+            <div class="form-group">
+                <label>No. Kad Pengenalan</label>
+                <input type="text" id="gKp" value="Contoh : 880214-08-5432">
+            </div>
+            <div class="form-group">
+                <label>Jenis Penilaian</label>
+                <select id="gJenis">
+                    <option value="Pencerapan 1">Pencerapan 1</option>
+                    <option value="Pencerapan 2">Pencerapan 2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mata Pelajaran</label>
+                <input type="text" id="gSubjek" value="Subjek">
+            </div>
+            <div class="form-group">
+                <label>Kelas</label>
+                <input type="text" id="gKelas" value="2 UIAM">
+            </div>
+            <div class="form-group">
+                <label>Tarikh Sesi</label>
+                <input type="date" id="gTarikh" value="2026-08-12">
+            </div>
+        </div>
+    </div>
+</div>
+
 
             <!-- ASPEK 4.1.1 -->
             <div class="card aspek-card" id="card-4.1.1" data-aspek="4.1.1">
@@ -1257,10 +1263,10 @@ header p {
             <p style="font-size: 0.75rem; color:#444;" id="pSignNamaPenilai">(Pegawai Penilai)</p>
         </div>
         <div>
-            <p>.......................................................</p>
-            <p style="font-weight: bold; margin-top: 3px;">Tandatangan Guru Dinilai</p>
-            <p style="font-size: 0.75rem; color:#444;">(Siti Aminah binti Rahman)</p>
-        </div>
+    <p>.......................................................</p>
+    <p style="font-weight: bold; margin-top: 3px;">Tandatangan Guru Dinilai</p>
+    <p style="font-size: 0.75rem; color:#444;" id="pSignNamaGuru">(Nama Penuh Guru)</p>
+</div>
     </div>
 
     <div style="text-align: center; margin-top: 40px;" id="btnRealPrintAction">
@@ -1462,8 +1468,11 @@ function muatTurunCSV() {
         alertBanner.style.display = 'none';
 
         const namaPenilai = document.getElementById('gPenilai').value || "-";
+	const namaGuru = document.getElementById('gNama').value || "-";
+
         document.getElementById('pPenilai').innerText = namaPenilai;
         document.getElementById('pSignNamaPenilai').innerText = `(${namaPenilai})`;
+	document.getElementById('pSignNamaGuru').innerText = `(${namaGuru})`;
 
         document.getElementById('pNama').innerText = document.getElementById('gNama').value || "-";
         document.getElementById('pKp').innerText = document.getElementById('gKp').value || "-";
@@ -1533,26 +1542,37 @@ function tukarTampilanAspekSidebar(idCard, element) {
     // 1. Tukar warna butang aktif
     const btnItems = document.querySelectorAll('.btn-sidebar-item');
     btnItems.forEach(btn => btn.classList.remove('active'));
-    element.classList.add('active');
+    if (element) element.classList.add('active');
 
     const semuaKadAspek = document.querySelectorAll('.aspek-card');
+    const kadMaklumatGuru = document.getElementById('card-maklumat-guru');
     const kadBukuLatihan = document.getElementById('card-buku-latihan');
 
     // 2. Jika tekan butang "Papar Semua Aspek"
     if (idCard === 'ALL') {
         semuaKadAspek.forEach(kad => kad.style.display = 'block');
+        if (kadMaklumatGuru) kadMaklumatGuru.style.display = 'block';
         if (kadBukuLatihan) kadBukuLatihan.style.display = 'block';
         return;
     }
 
-    // 3. Jika tekan "Buku Latihan Murid"
-    if (idCard === 'card-buku-latihan') {
-        semuaKadAspek.forEach(kad => kad.style.display = 'none'); // Sembunyi semua aspek SKPMg2
-        if (kadBukuLatihan) kadBukuLatihan.style.display = 'block'; // Papar buku latihan sahaja
+    // 3. Jika tekan "Maklumat Guru & Sesi"
+    if (idCard === 'card-maklumat-guru') {
+        semuaKadAspek.forEach(kad => kad.style.display = 'none');
+        if (kadBukuLatihan) kadBukuLatihan.style.display = 'none';
+        if (kadMaklumatGuru) kadMaklumatGuru.style.display = 'block';
         return;
     }
 
-    // 4. Jika tekan Aspek spesifik (cth: 4.1.1, 4.6.1, dll)
+    // 4. Jika tekan "Buku Latihan Murid"
+    if (idCard === 'card-buku-latihan') {
+        semuaKadAspek.forEach(kad => kad.style.display = 'none');
+        if (kadMaklumatGuru) kadMaklumatGuru.style.display = 'none';
+        if (kadBukuLatihan) kadBukuLatihan.style.display = 'block';
+        return;
+    }
+
+    // 5. Jika tekan Aspek spesifik (cth: 4.1.1, 4.6.1, dll)
     semuaKadAspek.forEach(kad => {
         if (kad.id === idCard) {
             kad.style.display = 'block';
@@ -1561,7 +1581,8 @@ function tukarTampilanAspekSidebar(idCard, element) {
         }
     });
 
-    // Sembunyikan kad buku latihan apabila fokus pada satu aspek sahaja
+    // Sembunyikan maklumat guru & buku latihan apabila fokus pada aspek spesifik sahaja
+    if (kadMaklumatGuru) kadMaklumatGuru.style.display = 'none';
     if (kadBukuLatihan) kadBukuLatihan.style.display = 'none';
 }
 
@@ -1664,6 +1685,18 @@ function toggleSidebar() {
         icon.innerText = '◀';
     }
 }
+
+// Mengemaskini nama tandatangan secara automatik semasa menaip
+document.getElementById('gNama').addEventListener('input', function() {
+    const namaInput = this.value;
+    const elemTandatangan = document.getElementById('namaTandatangan');
+    
+    if (namaInput.trim() !== "") {
+        elemTandatangan.innerText = "(" + namaInput + ")";
+    } else {
+        elemTandatangan.innerText = "( ....................................................... )";
+    }
+});
 
 </script>
 <!-- TAMAT: KOD AUTO-SAVE -->
