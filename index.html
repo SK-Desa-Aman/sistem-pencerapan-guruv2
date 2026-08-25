@@ -1499,10 +1499,8 @@ function muatTurunCSV() {
         alertBanner.style.display = 'none';
 
         const namaPenilai = document.getElementById('gPenilai').value || "-";
-		const namaGuru = document.getElementById('gNama').value || "-";
         document.getElementById('pPenilai').innerText = namaPenilai;
         document.getElementById('pSignNamaPenilai').innerText = `(${namaPenilai})`;
-		document.getElementById('pSignNamaGuru').innerText = `(${namaGuru})`;
 
         document.getElementById('pNama').innerText = document.getElementById('gNama').value || "-";
         document.getElementById('pKp').innerText = document.getElementById('gKp').value || "-";
