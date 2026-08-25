@@ -533,12 +533,37 @@ header p {
         .bg-gray-row { background-color: #fafafa; font-weight: 600; }
         .text-center { text-align: center; }
 
-        @media print {
-            body { background: transparent; padding: 0; }
-            .container, .btn-container, header, .sticky-dashboard { display: none !important; }
-            .print-section { display: block !important; border: none; padding: 0; }
-            #btnRealPrintAction { display: none !important; }
-        }
+       @media print {
+    body { 
+        background: transparent !important; 
+        padding: 0 !important; 
+    }
+
+    /* Sembunyikan SEMUA borang penyuntingan, sidebar, dan bekas ulasan asal */
+    .container, 
+    .btn-container, 
+    header, 
+    .sticky-dashboard, 
+    .workspace-layout, 
+    .aspek-card, 
+    .card, 
+    .no-print, 
+    #btnRealPrintAction { 
+        display: none !important; 
+    }
+
+    /* Tunjukkan HANYA bahagian cetakan laporan rasmi */
+    .print-section, 
+    #printSectionLayout { 
+        display: block !important; 
+        border: none !important; 
+        padding: 0 !important; 
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+    }
+}
 
 
     </style>
@@ -1157,6 +1182,7 @@ header p {
 		</div>
 	</div>
 </div>
+
 </div>
 
 
@@ -1178,12 +1204,16 @@ header p {
     </div>
 </div>
 
+</div>
+
+
+
 
 <!-- TEMPLAT DOKUMEN RASMI READY-TO-PRINT -->
 <div class="print-section" id="printSectionLayout">
     <div class="print-header">
-        <h2>BORANG SKOR GURU - STANDARD 4 SKPMg2</h2>
-        <p>SK Desa Aman | Pengurusan Akademik Sekolah</p>
+        <h2>BORANG SKOR SEKOLAH - STANDARD 4 SKPMg2</h2>
+        <p>Kementerian Pendidikan Malaysia | Pengurusan Akademik Sekolah</p>
     </div>
 
     <table class="print-table">
@@ -1268,6 +1298,7 @@ header p {
     <p style="font-size: 0.75rem; color:#444;" id="pSignNamaGuru">(Nama Penuh Guru)</p>
 </div>
     </div>
+
 
     <div style="text-align: center; margin-top: 40px;" id="btnRealPrintAction">
         <button class="btn btn-primary" onclick="window.print()">Cetak Dokumen / Simpan PDF</button>
@@ -1444,7 +1475,7 @@ function muatTurunCSV() {
         return { totalSkorBuku, peratusBuku };
     }
 
-    function janaDokumenLaporanAkhir() {
+      function janaDokumenLaporanAkhir() {
         let aspekKeys = Object.keys(databaseSkorMikro);
         let adaBelumTanda = false;
 
@@ -1468,11 +1499,8 @@ function muatTurunCSV() {
         alertBanner.style.display = 'none';
 
         const namaPenilai = document.getElementById('gPenilai').value || "-";
-	const namaGuru = document.getElementById('gNama').value || "-";
-
         document.getElementById('pPenilai').innerText = namaPenilai;
         document.getElementById('pSignNamaPenilai').innerText = `(${namaPenilai})`;
-	document.getElementById('pSignNamaGuru').innerText = `(${namaGuru})`;
 
         document.getElementById('pNama').innerText = document.getElementById('gNama').value || "-";
         document.getElementById('pKp').innerText = document.getElementById('gKp').value || "-";
